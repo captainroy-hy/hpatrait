@@ -8,6 +8,7 @@ import (
 	"github.com/crossplane/oam-kubernetes-runtime/pkg/oam"
 	autoscalingv1 "k8s.io/api/autoscaling/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	ctrl "sigs.k8s.io/controller-runtime"
 
 	coreoamdevv1alpha2 "hpatrait/api/v1alpha2"
 )
@@ -19,7 +20,7 @@ var (
 
 const LabelKey = "hpatrait.oam.crossplane.io"
 
-func renderHPA(ctx context.Context, trait oam.Trait) (*autoscalingv1.HorizontalPodAutoscaler, error) {
+func (r *HorizontalPodAutoscalerTraitReconciler) renderHPA(ctx context.Context, trait oam.Trait) (*autoscalingv1.HorizontalPodAutoscaler, error) {
 	t, ok := trait.(*coreoamdevv1alpha2.HorizontalPodAutoscalerTrait)
 	if !ok {
 		return nil, errors.New("not a hpa trait")
@@ -45,6 +46,9 @@ func renderHPA(ctx context.Context, trait oam.Trait) (*autoscalingv1.HorizontalP
 			},
 			MaxReplicas: t.Spec.MaxReplicas,
 		},
+	}
+	if err := ctrl.SetControllerReference(trait, hpa, r.Scheme); err != nil {
+		return nil, err
 	}
 	return hpa, nil
 }

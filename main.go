@@ -20,6 +20,7 @@ import (
 	"flag"
 	"os"
 
+	"github.com/crossplane/oam-kubernetes-runtime/apis/core"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -40,6 +41,8 @@ func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
 	_ = coreoamdevv1alpha2.AddToScheme(scheme)
+
+	_ = core.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 

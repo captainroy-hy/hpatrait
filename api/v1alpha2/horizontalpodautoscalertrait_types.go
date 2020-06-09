@@ -34,7 +34,7 @@ type HorizontalPodAutoscalerTraitSpec struct {
 	Template autoscalingv1.HorizontalPodAutoscalerSpec `json:"template,omitempty"`
 
 	// WorkloadReference to the workload this trait applies to.
-	WorkloadReference runtimev1alpha1.TypedReference `json:"workloadRef"`
+	WorkloadReference runtimev1alpha1.TypedReference `json:"workloadRef,omitempty"`
 }
 
 // HorizontalPodAutoscalerTraitStatus defines the observed state of HorizontalPodAutoscalerTrait
@@ -51,7 +51,7 @@ type HorizontalPodAutoscalerTraitStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:categories={crossplane,oam}
-
+// +kubebuilder:subresource:status
 // HorizontalPodAutoscalerTrait is the Schema for the horizontalpodautoscalertraits API
 type HorizontalPodAutoscalerTrait struct {
 	metav1.TypeMeta   `json:",inline"`
