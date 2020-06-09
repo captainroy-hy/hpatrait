@@ -1,0 +1,7 @@
+apiVersion: core.oam.dev.core.oam.dev/v1alpha2
+kind: HorizontalPodAutoscalerTrait
+metadata:
+  name: horizontalpodautoscalertrait-sample
+spec:
+  # Add fields here
+  foo: bar
