@@ -5,7 +5,7 @@ metadata:
   name: horizontalpodautoscalertrait-viewer-role
 rules:
 - apiGroups:
-  - core.oam.dev.core.oam.dev
+  - core.oam.dev
   resources:
   - horizontalpodautoscalertraits
   verbs:
@@ -13,7 +13,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - core.oam.dev.core.oam.dev
+  - core.oam.dev
   resources:
   - horizontalpodautoscalertraits/status
   verbs:

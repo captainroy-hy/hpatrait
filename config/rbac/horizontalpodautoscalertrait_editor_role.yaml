@@ -5,7 +5,7 @@ metadata:
   name: horizontalpodautoscalertrait-editor-role
 rules:
 - apiGroups:
-  - core.oam.dev.core.oam.dev
+  - core.oam.dev
   resources:
   - horizontalpodautoscalertraits
   verbs:
@@ -17,7 +17,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - core.oam.dev.core.oam.dev
+  - core.oam.dev
   resources:
   - horizontalpodautoscalertraits/status
   verbs:

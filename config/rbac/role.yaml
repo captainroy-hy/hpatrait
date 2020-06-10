@@ -7,6 +7,28 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  verbs:
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - autoscaling
   resources:
   - horizontalpodautoscalers
@@ -21,14 +43,6 @@ rules:
 - apiGroups:
   - core.oam.dev
   resources:
-  - workloaddefinitions
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - core.oam.dev.core.oam.dev
-  resources:
   - horizontalpodautoscalertraits
   verbs:
   - create
@@ -39,10 +53,18 @@ rules:
   - update
   - watch
 - apiGroups:
-  - core.oam.dev.core.oam.dev
+  - core.oam.dev
   resources:
   - horizontalpodautoscalertraits/status
   verbs:
   - get
   - patch
   - update
+- apiGroups:
+  - core.oam.dev
+  resources:
+  - workloaddefinitions
+  verbs:
+  - get
+  - list
+  - watch

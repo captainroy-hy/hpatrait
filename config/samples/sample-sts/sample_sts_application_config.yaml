@@ -1,0 +1,16 @@
+apiVersion: core.oam.dev/v1alpha2
+kind: ApplicationConfiguration
+metadata:
+  name: example-sts-appconfig
+spec:
+  components:
+    - componentName: example-sts
+      traits:
+        - trait:
+            apiVersion: core.oam.dev/v1alpha2
+            kind: HorizontalPodAutoscalerTrait
+            metadata:
+              name:  example-hpa-trait
+            spec:
+              maxReplicas: 3
+              targetCPUUtilizationPercentage: 30

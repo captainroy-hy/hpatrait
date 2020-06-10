@@ -18,7 +18,6 @@ package v1alpha2
 
 import (
 	runtimev1alpha1 "github.com/crossplane/crossplane-runtime/apis/core/v1alpha1"
-	autoscalingv1 "k8s.io/api/autoscaling/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -29,9 +28,20 @@ import (
 type HorizontalPodAutoscalerTraitSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	MaxReplicas int32 `json:"maxReplicas" protobuf:"varint,1,opt,name=maxReplicas"`
 
-	Template autoscalingv1.HorizontalPodAutoscalerSpec `json:"template,omitempty"`
+	// minReplicas is the lower limit for the number of replicas to which the autoscaler
+	// can scale down.  It defaults to 1 pod.  minReplicas is allowed to be 0 if the
+	// alpha feature gate HPAScaleToZero is enabled and at least one Object or External
+	// metric is configured.  Scaling is active as long as at least one metric value is
+	// available.
+	// +optional
+	MinReplicas *int32 `json:"minReplicas,omitempty"`
+	// upper limit for the number of pods that can be set by the autoscaler; cannot be smaller than MinReplicas.
+	MaxReplicas int32 `json:"maxReplicas"`
+	// target average CPU utilization (represented as a percentage of requested CPU) over all the pods;
+	// if not specified the default autoscaling policy will be used.
+	// +optional
+	TargetCPUUtilizationPercentage *int32 `json:"targetCPUUtilizationPercentage,omitempty"`
 
 	// WorkloadReference to the workload this trait applies to.
 	WorkloadReference runtimev1alpha1.TypedReference `json:"workloadRef,omitempty"`
@@ -41,7 +51,6 @@ type HorizontalPodAutoscalerTraitSpec struct {
 type HorizontalPodAutoscalerTraitStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	DesiredReplicas int32 `json:"desiredReplicas" protobuf:"varint,1,opt,name=desiredReplicas"`
 
 	runtimev1alpha1.ConditionedStatus `json:",inline"`
 
