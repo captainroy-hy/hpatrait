@@ -62,11 +62,16 @@ func (r *HorizontalPodAutoscalerTraitReconciler) renderHPA(ctx context.Context, 
 			if err := json.Unmarshal(bts, &deploy); err != nil {
 				return nil, errors.Wrap(err, "Failed to convert an unstructured obj to a deployment")
 			}
+			
 			scaleTargetRef = autoscalingv1.CrossVersionObjectReference{
 				Kind:       KindDeployment,
 				Name:       deploy.GetName(),
 				APIVersion: appsAPIVersion,
 			}
+		// TODO For deployment or statefulset without setting 
+		// spec.containers[].resources
+		// maybe we should set default value for it
+		// because it's required by HPA
 		case GVKStatefulSet:
 			var sts appsv1.StatefulSet
 			bts, _ := json.Marshal(res)
@@ -78,6 +83,10 @@ func (r *HorizontalPodAutoscalerTraitReconciler) renderHPA(ctx context.Context, 
 				Name:       sts.GetName(),
 				APIVersion: appsAPIVersion,
 			}
+		// TODO For deployment or statefulset without setting 
+		// spec.containers[].resources
+		// maybe we should set default value for it
+		// because it's required by HPA
 		default:
 			continue
 		}

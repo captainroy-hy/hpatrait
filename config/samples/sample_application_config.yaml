@@ -9,7 +9,8 @@ spec:
         - name: instance-name
           value: example-appconfig-workload
         - name: image
-          value: wordpress:php7.2
+          value: k8s.gcr.io/hpa-example
+          # value: wordpress:php7.2
       traits:
         - trait:
             apiVersion: core.oam.dev/v1alpha2
