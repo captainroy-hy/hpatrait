@@ -1,32 +1,25 @@
 apiVersion: core.oam.dev/v1alpha2
 kind: Component
 metadata:
-  name: example-component
+  name: example-hpa-component
 spec:
   workload:
     apiVersion: core.oam.dev/v1alpha2
     kind: ContainerizedWorkload
     spec:
       containers:
-        - name: wordpress
-          image: wordpress:4.6.1-apache
+        - name: php-apache
+          image: k8s.gcr.io/hpa-example
           ports:
             - containerPort: 80
-              name: wordpress
+              name: pa
           resources:
             cpu: 
               required: 100m
-            memory: 
-              required: 100m
-          #   limits:
-          #     cpu: 500m
-          #   requests:
-          #     cpu: 200m
+            memory:
+              required: 200m
   parameters:
     - name: instance-name
       required: true
       fieldPaths:
         - metadata.name
-    - name: image
-      fieldPaths:
-        - spec.containers[0].image

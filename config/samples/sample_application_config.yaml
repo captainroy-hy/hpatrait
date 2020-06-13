@@ -4,20 +4,17 @@ metadata:
   name: example-appconfig
 spec:
   components:
-    - componentName: example-component
+    - componentName: example-hpa-component
       parameterValues:
         - name: instance-name
-          value: example-appconfig-workload
-        - name: image
-          value: k8s.gcr.io/hpa-example
-          # value: wordpress:php7.2
+          value: php-apache
       traits:
         - trait:
             apiVersion: core.oam.dev/v1alpha2
             kind: HorizontalPodAutoscalerTrait
             metadata:
-              name:  example-hpa-trait
+              name:  example-hpatrait
             spec:
               minReplicas: 1
-              maxReplicas: 3
+              maxReplicas: 10
               targetCPUUtilizationPercentage: 30
