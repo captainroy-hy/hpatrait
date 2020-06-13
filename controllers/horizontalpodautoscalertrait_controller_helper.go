@@ -42,6 +42,10 @@ const (
 	LabelKey = "hpatrait.oam.crossplane.io"
 )
 
+const (
+	errMissContainerResources = "missing container resources config"
+)
+
 func (r *HorizontalPodAutoscalerTraitReconciler) renderHPA(ctx context.Context, trait oam.Trait, resources []*unstructured.Unstructured) ([]*autoscalingv1.HorizontalPodAutoscaler, error) {
 	t, ok := trait.(*coreoamdevv1alpha2.HorizontalPodAutoscalerTrait)
 	if !ok {
@@ -50,47 +54,17 @@ func (r *HorizontalPodAutoscalerTraitReconciler) renderHPA(ctx context.Context, 
 	hpas := make([]*autoscalingv1.HorizontalPodAutoscaler, 0)
 
 	for _, res := range resources {
-		var scaleTargetRef autoscalingv1.CrossVersionObjectReference
-		resGVK := res.GetObjectKind().GroupVersionKind().String()
-
 		// currently support appsv1/Deployment, appsv1/StatefulSet
 		// TODO any resouces with Scale endpoint should be accepted
-		switch resGVK {
-		case GVKDeployment:
-			var deploy appsv1.Deployment
-			bts, _ := json.Marshal(res)
-			if err := json.Unmarshal(bts, &deploy); err != nil {
-				return nil, errors.Wrap(err, "Failed to convert an unstructured obj to a deployment")
-			}
-			
-			scaleTargetRef = autoscalingv1.CrossVersionObjectReference{
-				Kind:       KindDeployment,
-				Name:       deploy.GetName(),
-				APIVersion: appsAPIVersion,
-			}
-		// TODO For deployment or statefulset without setting 
-		// spec.containers[].resources
-		// maybe we should set default value for it
-		// because it's required by HPA
-		case GVKStatefulSet:
-			var sts appsv1.StatefulSet
-			bts, _ := json.Marshal(res)
-			if err := json.Unmarshal(bts, &sts); err != nil {
-				return nil, errors.Wrap(err, "Failed to convert an unstructured obj to a statefulset")
-			}
-			scaleTargetRef = autoscalingv1.CrossVersionObjectReference{
-				Kind:       KindStatefulSet,
-				Name:       sts.GetName(),
-				APIVersion: appsAPIVersion,
-			}
-		// TODO For deployment or statefulset without setting 
-		// spec.containers[].resources
-		// maybe we should set default value for it
-		// because it's required by HPA
-		default:
+
+		//render autoscalingv1.CrossVersionObjectReference basing unstructured resource
+		scaleTargetRef, isValidResource, err := renderReference(res)
+		if err != nil {
+			return nil, err
+		}
+		if !isValidResource {
 			continue
 		}
-
 		// construct autoscalingv1/HPA obj
 		hpa := &autoscalingv1.HorizontalPodAutoscaler{
 			TypeMeta: metav1.TypeMeta{
@@ -194,4 +168,60 @@ func DetermineWorkloadType(ctx context.Context, log logr.Logger, r client.Reader
 	default:
 		return nil, errors.Errorf(fmt.Sprint("This trait doesn't support this APIVersion", apiVersion))
 	}
+}
+
+func renderReference(resource *unstructured.Unstructured) (r autoscalingv1.CrossVersionObjectReference, isValidResource bool, err error) {
+	resGVK := resource.GetObjectKind().GroupVersionKind().String()
+	isValidResource = false
+
+	switch resGVK {
+	case GVKDeployment:
+		var deploy appsv1.Deployment
+		bts, _ := json.Marshal(resource)
+		if err := json.Unmarshal(bts, &deploy); err != nil {
+			return r, isValidResource, errors.Wrap(err, "Failed to convert an unstructured obj to a appsv1.deployment")
+		}
+
+		// check spec.containers.resource
+		// if missing, raise an error
+		// for it's required by HPA
+		containers := deploy.Spec.Template.Spec.Containers
+		for _, container := range containers {
+			if container.Resources.Requests == nil {
+				return r, isValidResource, fmt.Errorf("cannot get container.resources.requests from deployment: %s", deploy.GetName())
+			}
+		}
+		isValidResource = true
+		r = autoscalingv1.CrossVersionObjectReference{
+			Kind:       KindDeployment,
+			Name:       deploy.GetName(),
+			APIVersion: appsAPIVersion,
+		}
+	case GVKStatefulSet:
+		var sts appsv1.Deployment
+		bts, _ := json.Marshal(resource)
+		if err := json.Unmarshal(bts, &sts); err != nil {
+			return r, isValidResource, errors.Wrap(err, "Failed to convert an unstructured obj to a appsv1.statefulset")
+		}
+
+		// check spec.containers.resource
+		// if missing, raise an error
+		// for it's required by HPA
+		containers := sts.Spec.Template.Spec.Containers
+		for _, container := range containers {
+			if container.Resources.Requests == nil {
+				return r, isValidResource, fmt.Errorf("cannot get container.resources.requests from statefulset: %s", sts.GetName())
+			}
+		}
+		isValidResource = true
+		r = autoscalingv1.CrossVersionObjectReference{
+			Kind:       KindDeployment,
+			Name:       sts.GetName(),
+			APIVersion: appsAPIVersion,
+		}
+	default:
+		isValidResource = false
+	}
+
+	return r, isValidResource, nil
 }
